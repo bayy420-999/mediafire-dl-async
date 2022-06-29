@@ -2,8 +2,8 @@ import asyncio, aiofiles, shutil, re, os
 from requests_async import create_request
 
 def merge_files():
-    part_files = sorted([f for f in os.listdir('temp')])
-    filenames = set([f.split('-')[0] for f in part_files])
+    part_files = sorted(list(os.listdir('temp')))
+    filenames = {f.split('-')[0] for f in part_files}
 
     for filename in filenames:
         with open(f'results/{filename}', 'wb+') as output_file:
@@ -72,7 +72,7 @@ async def mediafire_download(urls, max_download = None, split_chunk = None, cont
             filename = re.search(r'filename\=\"(.*?)\"', data['Content-Disposition'].encode('iso-8859-1').decode('utf-8'))[1]
         except TypeError:
             raise TypeError('File doesn\'t exists')
- 
+
         if filename != None:
             size = int(data['Content-Length'])
 
@@ -81,11 +81,7 @@ async def mediafire_download(urls, max_download = None, split_chunk = None, cont
             each_size = size // split_chunk
             print(f"Each size is {each_size} bytes")
             for idx, _ in enumerate(sections):
-                if idx == 0:
-                    sections[idx][0] = 0
-                else:
-                    sections[idx][0] = sections[idx - 1][1] + 1
-
+                sections[idx][0] = 0 if idx == 0 else sections[idx - 1][1] + 1
                 if idx < split_chunk - 1:
                     sections[idx][1] = sections[idx][0] + each_size
                 else:
